@@ -78,7 +78,7 @@ class AiOsBridgeService : Service() {
             description = "Dịch vụ cầu nối hệ thống chạy cục bộ tại 127.0.0.1:8765"
             setShowBadge(false)
         }
-        manager.createNotificationChannel(channel)
+        manager?.createNotificationChannel(channel)
     }
 
     private fun promoteToForeground() {

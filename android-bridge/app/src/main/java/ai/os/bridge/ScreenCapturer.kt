@@ -234,7 +234,7 @@ class ScreenCapturer(private val context: Context) {
 
     private fun ensureSoftwareBitmap(bitmap: Bitmap): Bitmap {
         return if (bitmap.config == Bitmap.Config.HARDWARE) {
-            bitmap.copy(Bitmap.Config.ARGB_8888, false)
+            bitmap.copy(Bitmap.Config.ARGB_8888, false) ?: bitmap
         } else {
             bitmap
         }

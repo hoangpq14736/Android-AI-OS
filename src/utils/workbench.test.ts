@@ -154,4 +154,11 @@ test('GitHub Actions workflow builds APK, signs with apksigner, and uploads ai_o
     'utf-8'
   );
   assert.ok(!manifest.includes('package="ai.os.bridge"'));
+
+  const unblocker = fs.readFileSync(
+    path.resolve('prototype/android-bridge/app/src/main/java/ai/os/bridge/HiddenApiUnblocker.kt'),
+    'utf-8'
+  );
+  assert.ok(!unblocker.includes('Array<Class<*>>::class.java'));
+  assert.ok(unblocker.includes('java.lang.reflect.Array.newInstance(Class::class.java, 0).javaClass'));
 });

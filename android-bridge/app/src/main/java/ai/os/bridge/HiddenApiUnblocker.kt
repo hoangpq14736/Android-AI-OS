@@ -18,10 +18,11 @@ object HiddenApiUnblocker {
             if (initialized) return
             try {
                 val forName: Method = Class::class.java.getDeclaredMethod("forName", String::class.java)
+                val classArrayType: Class<*> = java.lang.reflect.Array.newInstance(Class::class.java, 0).javaClass
                 val getDeclaredMethod: Method = Class::class.java.getDeclaredMethod(
                     "getDeclaredMethod",
                     String::class.java,
-                    Array<Class<*>>::class.java
+                    classArrayType
                 )
 
                 val vmRuntimeClass = forName.invoke(null, "dalvik.system.VMRuntime") as Class<*>
