@@ -131,12 +131,27 @@ test('loopSimulator completes Shopee scenario, caches skill in SQLite state, and
 });
 
 test('GitHub Actions workflow builds APK, signs with apksigner, and uploads ai_os_bridge.zip artifact', () => {
-  const workflowPath = path.resolve('prototype/.github/workflows/build-magisk-module.yml');
-  const workflow = fs.readFileSync(workflowPath, 'utf-8');
+  const workflow = fs.readFileSync(
+    path.resolve('prototype/.github/workflows/build-magisk-module.yml'),
+    'utf-8'
+  );
+  assert.ok(!workflow.includes('android-actions/setup-android'));
   assert.ok(workflow.includes('gradle-version: "8.11.1"'));
   assert.ok(workflow.includes('platforms;android-35'));
   assert.ok(workflow.includes('apksigner'));
   assert.ok(workflow.includes('magisk-module/build_module.sh'));
   assert.ok(workflow.includes('magisk-module/ai_os_bridge.zip'));
   assert.ok(workflow.includes('actions/upload-artifact@v4'));
+
+  const injector = fs.readFileSync(
+    path.resolve('prototype/android-bridge/app/src/main/java/ai/os/bridge/InputInjector.kt'),
+    'utf-8'
+  );
+  assert.ok(!injector.includes('KeyEvent.FLAG_FROM_SYSTEM'));
+
+  const manifest = fs.readFileSync(
+    path.resolve('prototype/android-bridge/app/src/main/AndroidManifest.xml'),
+    'utf-8'
+  );
+  assert.ok(!manifest.includes('package="ai.os.bridge"'));
 });

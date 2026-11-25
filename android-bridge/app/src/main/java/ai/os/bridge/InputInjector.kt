@@ -31,6 +31,7 @@ class InputInjector(private val context: Context) {
         private const val TAG = "AiOsInputInjector"
         private const val INJECT_INPUT_EVENT_MODE_ASYNC = 0
         private const val INJECT_INPUT_EVENT_MODE_WAIT_FOR_FINISH = 2
+        private const val FLAG_FROM_SYSTEM = 0x00000008
         private const val NORMALIZED_MAX = 1000.0
     }
 
@@ -308,7 +309,7 @@ class InputInjector(private val context: Context) {
             metaState,
             KeyCharacterMap.VIRTUAL_KEYBOARD,
             0,
-            KeyEvent.FLAG_FROM_SYSTEM,
+            FLAG_FROM_SYSTEM,
             InputDevice.SOURCE_KEYBOARD
         )
         val up = KeyEvent(
@@ -320,7 +321,7 @@ class InputInjector(private val context: Context) {
             metaState,
             KeyCharacterMap.VIRTUAL_KEYBOARD,
             0,
-            KeyEvent.FLAG_FROM_SYSTEM,
+            FLAG_FROM_SYSTEM,
             InputDevice.SOURCE_KEYBOARD
         )
         val okDown = injectEvent(down, INJECT_INPUT_EVENT_MODE_ASYNC)

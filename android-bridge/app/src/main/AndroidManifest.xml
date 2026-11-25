@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="ai.os.bridge">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Quyền signature|privileged cốt lõi (bắt buộc whitelist trong privapp-permissions-ai.os.bridge.xml) -->
     <uses-permission
