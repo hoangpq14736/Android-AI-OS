@@ -1,0 +1,6 @@
+id=ai_os_bridge
+name=AI OS Priv-App Bridge (LineageOS 14/15/16)
+version=v1.0.0
+versionCode=100
+author=Android AI OS Systems
+description=Mounts ai.os.bridge into /system/priv-app with full privapp-permissions whitelist for Xiaomi 12 Pro (Magisk / KernelSU) without bootloop.

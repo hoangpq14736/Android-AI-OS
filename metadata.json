@@ -1,0 +1,8 @@
+{
+  "name": "Android AI OS Prototype Workbench",
+  "description": "Bộ mã nguồn hoàn chỉnh cho nguyên mẫu Android AI OS trên LineageOS (Android 14/15/16, Xiaomi 12 Pro): Android Priv-App Bridge APK (Kotlin), Magisk/KernelSU Module chống bootloop và Python Gemini Orchestrator Agent.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

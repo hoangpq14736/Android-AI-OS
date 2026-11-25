@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Whitelist bắt buộc cho priv-app trên Android 14 / 15 / 16 (LineageOS).
+  Mọi quyền protectionLevel="signature|privileged" khai báo trong AndroidManifest.xml
+  PHẢI có mặt tại đây để PackageManager không ném IllegalStateException gây bootloop.
+-->
+<permissions>
+    <privapp-permissions package="ai.os.bridge">
+        <permission name="android.permission.INJECT_EVENTS" />
+        <permission name="android.permission.READ_FRAME_BUFFER" />
+        <permission name="android.permission.CAPTURE_VIDEO_OUTPUT" />
+        <permission name="android.permission.REAL_GET_TASKS" />
+        <permission name="android.permission.PACKAGE_USAGE_STATS" />
+        <permission name="android.permission.INTERACT_ACROSS_USERS" />
+        <permission name="android.permission.START_ACTIVITIES_FROM_BACKGROUND" />
+    </privapp-permissions>
+</permissions>
