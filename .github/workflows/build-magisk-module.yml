@@ -19,19 +19,40 @@ jobs:
       - name: 1. Tải mã nguồn repository
         uses: actions/checkout@v4
 
-      - name: 2. Thiết lập JDK 17 (Temurin)
+      - name: 2. Tự động nhận diện thư mục gốc dự án
+        run: |
+          set -euo pipefail
+          if [[ -d "android-bridge" && -d "magisk-module" ]]; then
+            echo "PROJECT_ROOT=." >> "$GITHUB_ENV"
+          elif [[ -d "android-ai-os-prototype/android-bridge" && -d "android-ai-os-prototype/magisk-module" ]]; then
+            echo "PROJECT_ROOT=android-ai-os-prototype" >> "$GITHUB_ENV"
+          else
+            echo "LỖI: Không tìm thấy thư mục android-bridge và magisk-module trong repo."
+            ls -la
+            exit 1
+          fi
+
+      - name: 3. Thiết lập JDK 17 (Temurin)
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
-      - name: 3. Thiết lập Android SDK (API 35 / Build-Tools 35.0.0)
-        uses: android-actions/setup-android@v3
-
-      - name: 4. Cài đặt platform Android 35 & build-tools
+      - name: 4. Cài đặt Android SDK Platform 35 & Build-Tools 35.0.0
         run: |
-          yes | sdkmanager --licenses >/dev/null 2>&1 || true
-          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+
+          SDKMANAGER="$(ls -d "$SDK_ROOT"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | sort -V | tail -n 1 || true)"
+          if [[ -z "$SDKMANAGER" ]]; then
+            SDKMANAGER="$(command -v sdkmanager)"
+          fi
+          echo "Using sdkmanager: $SDKMANAGER"
+
+          yes | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses >/dev/null 2>&1 || true
+          "$SDKMANAGER" --sdk_root="$SDK_ROOT" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: 5. Thiết lập Gradle 8.11.1 (không cần cài sẵn trên máy)
         uses: gradle/actions/setup-gradle@v4
@@ -39,8 +60,10 @@ jobs:
           gradle-version: "8.11.1"
 
       - name: 6. Biên dịch Android Bridge APK (ai.os.bridge)
-        working-directory: android-bridge
-        run: gradle assembleRelease --no-daemon --stacktrace
+        run: |
+          set -euo pipefail
+          cd "${PROJECT_ROOT}/android-bridge"
+          gradle assembleRelease --no-daemon --stacktrace
 
       - name: 7. Căn chỉnh (zipalign) & Ký APK (apksigner)
         env:
@@ -50,8 +73,8 @@ jobs:
           KEY_PASS: ${{ secrets.KEY_PASS }}
         run: |
           set -euo pipefail
-          BUILD_TOOLS="$ANDROID_HOME/build-tools/35.0.0"
-          APK_DIR="android-bridge/app/build/outputs/apk/release"
+          BUILD_TOOLS="${ANDROID_HOME}/build-tools/35.0.0"
+          APK_DIR="${PROJECT_ROOT}/android-bridge/app/build/outputs/apk/release"
 
           if [[ -f "$APK_DIR/app-release-unsigned.apk" ]]; then
             RAW_APK="$APK_DIR/app-release-unsigned.apk"
@@ -93,24 +116,27 @@ jobs:
       - name: 8. Kiểm tra XML whitelist & Đóng gói Magisk Module (ai_os_bridge.zip)
         run: |
           set -euo pipefail
-          sudo apt-get update -y && sudo apt-get install -y libxml2-utils zip unzip
-          chmod +x magisk-module/build_module.sh
-          ./magisk-module/build_module.sh android-bridge/app/build/outputs/apk/release/app-release-signed.apk
-          unzip -l magisk-module/ai_os_bridge.zip
+          if ! command -v xmllint >/dev/null 2>&1; then
+            sudo apt-get update -y && sudo apt-get install -y libxml2-utils
+          fi
+          chmod +x "${PROJECT_ROOT}/magisk-module/build_module.sh"
+          "${PROJECT_ROOT}/magisk-module/build_module.sh" \
+            "${PROJECT_ROOT}/android-bridge/app/build/outputs/apk/release/app-release-signed.apk"
+          unzip -l "${PROJECT_ROOT}/magisk-module/ai_os_bridge.zip"
 
       - name: 9. Tải lên Artifact ai_os_bridge.zip (sẵn sàng flash Magisk/KernelSU)
         uses: actions/upload-artifact@v4
         with:
           name: ai_os_bridge-magisk-module
           path: |
-            magisk-module/ai_os_bridge.zip
-            android-bridge/app/build/outputs/apk/release/app-release-signed.apk
+            ${{ env.PROJECT_ROOT }}/magisk-module/ai_os_bridge.zip
+            ${{ env.PROJECT_ROOT }}/android-bridge/app/build/outputs/apk/release/app-release-signed.apk
           retention-days: 30
 
       - name: 10. Xuất tóm tắt SHA256 & lệnh flash nhanh
         run: |
-          ZIP_SHA=$(sha256sum magisk-module/ai_os_bridge.zip | awk '{print $1}')
-          APK_SHA=$(sha256sum android-bridge/app/build/outputs/apk/release/app-release-signed.apk | awk '{print $1}')
+          ZIP_SHA=$(sha256sum "${PROJECT_ROOT}/magisk-module/ai_os_bridge.zip" | awk '{print $1}')
+          APK_SHA=$(sha256sum "${PROJECT_ROOT}/android-bridge/app/build/outputs/apk/release/app-release-signed.apk" | awk '{print $1}')
           {
             echo "## Biên dịch thành công — Android AI OS Magisk Module"
             echo ""
